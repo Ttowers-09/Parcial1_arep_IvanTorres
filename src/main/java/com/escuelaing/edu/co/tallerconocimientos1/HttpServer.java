@@ -5,6 +5,9 @@
 package com.escuelaing.edu.co.tallerconocimientos1;
 
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.io.*;
 
 /**
@@ -13,12 +16,14 @@ import java.io.*;
  */
 public class HttpServer {
 
+    private static final String RESOURCE_PATH ="C:/Users/ivan.forero-t/Downloads/Parcial1_arep_IvanTorres/public/resources";
+
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(36000);
         } catch (IOException e) {
-            System.err.println("Could not listen on port: 35000.");
+            System.err.println("Could not listen on port: 36000.");
             System.exit(1);
         }
 
@@ -38,30 +43,61 @@ public class HttpServer {
                     clientSocket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(clientSocket.getInputStream()));
-            String inputLine, outputLine;
+
+            String inputLine, path = null;
+            boolean firstLine = true;
+            String outputLine;
             while ((inputLine = in.readLine()) != null) {
+                if (firstLine) {
+                    path = inputLine.split(" ")[1];
+                    System.out.println("Path: " + path);
+                    firstLine = false;
+                }
                 System.out.println("Recibí: " + inputLine);
                 if (!in.ready()) {
                     break;
                 }
+                String cleanPath = path;
+                if (path.contains("=")) {
+                    String key = path.split("=")[1];
+                    String response = "HTTP/1.1 200 OK\r\n"
+                            + "Content-Type: text/plain\r\n\r\n"
+                            + key;
+                    out.println(response);
+                } else {
+                    serveStaticFile(cleanPath, clientSocket.getOutputStream(), out);
+                }
+                
             }
-            outputLine = "HTTP/1.1 200 OK\r\n"
-                    + "Content-Type: text/html\r\n"
-                    + "\r\n"
-                    + "<!DOCTYPE html>\n"
-                    + "<html>\n"
-                    + "<head>\n"
-                    + "<meta charset=\"UTF-8\">\n"
-                    + "<title>Title of the document</title>\n"
-                    + "</head>\n"
-                    + "<body>\n"
-                    + "<h1>Mi propio mensaje</h1>\n"
-                    + "</body>\n"
-                    + "</html>\n";
-            out.println(outputLine);
-            out.close();
-            in.close();
-            clientSocket.close();
+        }
+        
+    }
+
+     private static void serveStaticFile(String path, OutputStream rawOut, PrintWriter out) throws IOException {
+        String resourcePath = path.equals("/") ? "/index.html" : path;
+
+        Path filePath = Paths.get(RESOURCE_PATH + resourcePath);
+
+        if (Files.exists(filePath)) {
+            String mimeType = Files.probeContentType(filePath);
+            if (mimeType == null) mimeType = "application/octet-stream";
+
+            byte[] fileData = Files.readAllBytes(filePath);
+
+            out.print("HTTP/1.1 200 OK\r\n");
+            out.print("Content-Type: " + mimeType + "\r\n");
+            out.print("Content-Length: " + fileData.length + "\r\n");
+            out.print("\r\n");
+            out.flush();
+
+            rawOut.write(fileData);
+            rawOut.flush();
+
+        } else {
+            String response = "HTTP/1.1 404 Not Found\r\n"
+                    + "Content-Type: text/html\r\n\r\n"
+                    + "<h1>404 Not Found</h1>";
+            out.println(response);
         }
     }
 }
