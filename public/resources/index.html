@@ -9,10 +9,9 @@
 
 <body>
     <h1>Form with GET</h1>
-    <form action="/hello">
+    <form action="/identificador">
         <label for="identificador">identificador:</label><br>
         <input type="text" id="identificador" identificador="identificador" value=" "><br><br>
-        <input type="button" value="Submit" onclick="loadGetMsg()">
 
         <label for="valor">valor:</label><br>
         <input type="text" id="valor" valor="valor" value=" "><br><br>
@@ -23,12 +22,13 @@
     <script>
         function loadGetMsg() {
             let identificadorVar = document.getElementById("identificador").value;
+            let valorIdentificador = document.getElementById("valor").value;
             const xhttp = new XMLHttpRequest();
             xhttp.onload = function () {
                 document.getElementById("getrespmsg").innerHTML =
                     this.responseText;
             }
-            xhttp.open("GET", "/hello?identificador=" + identificadorVar);
+            xhttp.open("GET", "/identificador?identificador=" + identificadorVar);
             xhttp.send();
         }
     </script>

@@ -16,7 +16,7 @@ import java.io.*;
  */
 public class HttpServer {
 
-    private static final String RESOURCE_PATH ="C:/Users/ivan.forero-t/Downloads/Parcial1_arep_IvanTorres/public/resources";
+    private static final String RESOURCE_PATH = "C:/Users/ivan.forero-t/Downloads/Parcial1_arep_IvanTorres/public/resources";
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = null;
@@ -46,7 +46,7 @@ public class HttpServer {
 
             String inputLine, path = null;
             boolean firstLine = true;
-            String outputLine;
+
             while ((inputLine = in.readLine()) != null) {
                 if (firstLine) {
                     path = inputLine.split(" ")[1];
@@ -64,11 +64,21 @@ public class HttpServer {
                             + "Content-Type: text/plain\r\n\r\n"
                             + key;
                     out.println(response);
-                } else {
+
+
+                }if (path.equalsIgnoreCase("/favicon.ico")) {
+                    String response = "HTTP/1.1 200 OK\r\n"
+                            + "Content-Type: text/html\r\n\r\n"
+                            + "<h1>Favicon request ignored</h1>";
+                    out.println(response);
+
+                }else {
                     serveStaticFile(cleanPath, clientSocket.getOutputStream(), out);
                 }
                 
             }
+
+            //clientSocket.close();
         }
         
     }
